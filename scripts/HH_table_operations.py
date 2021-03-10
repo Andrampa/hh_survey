@@ -28,13 +28,35 @@ for sheet_name in xls.sheet_names:
 column_renaming_found = operations_df[operations_df['operation'].str.contains('columns_renaming')]
 if not column_renaming_found.empty:
     print("Renaming columns")
-    #converting renaming DF into dict in suitable format
+    #converting column renaming dataframe into a dict with a suitable format
     column_renaming_df = label_mapping_dfs["columns_renaming"]
     column_renaming_df.set_index('ColumnName', inplace=True)
     renaming_dictionary = column_renaming_df.to_dict()['VariableLabel']
     country_df.rename(columns=renaming_dictionary, inplace=True)
 else:
     print ("Columns renaming not needed")
+
+#the second operation should be the replacing of values in order to match them with the approved options,
+# if expressly requested inside the operations sheet
+#so: let's check if in the operations sheet there is such operation
+column_renaming_found = operations_df[operations_df['operation'].str.contains('values_replacing')]
+if not column_renaming_found.empty:
+    #converting replacing values dataframe into a dict with a suitable format
+    values_replacing_df = label_mapping_dfs["values_replacing"]
+    fields_needing_values_replacing = values_replacing_df['column'].unique()
+    for field_needing_values_replacing in fields_needing_values_replacing:
+        print("Replacing values in column %s" % field_needing_values_replacing)
+        values_replacing_df_specific_column = values_replacing_df.loc[(values_replacing_df['column'] == field_needing_values_replacing)
+                                                                      & (values_replacing_df['old_value'].notnull())
+                                                                      & (values_replacing_df['new_value'].notnull())]
+        del values_replacing_df_specific_column['column']
+        values_replacing_df_specific_column.set_index('old_value', inplace=True)
+        replacing_dictionary = values_replacing_df_specific_column.to_dict()['new_value']
+        country_df = country_df.replace({field_needing_values_replacing: replacing_dictionary})
+
+else:
+    print ("Values replacing not needed")
+
 
 #now, proceed column by column in the country sheet, and check if there is an associated task in the operations sheet
 for column in country_df:
