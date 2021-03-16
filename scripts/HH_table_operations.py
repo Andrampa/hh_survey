@@ -3,6 +3,25 @@ import numpy as np
 import os
 from pandas import ExcelWriter
 
+def SummarizeSurveys(surveys_df, surveys_admin_key_field, surveys_weight_field, surveys_summary_field, surveys_summary_field_universe):
+    df = surveys_df
+    universe_clause = ""
+    if surveys_summary_field_universe is not None:
+        surveys_summary_field_universe_array = surveys_summary_field_universe.split(';')
+        for i, value in enumerate(surveys_summary_field_universe_array):
+            if i == 0:
+                temp_Arr = value.split(':')
+                universe_clause += temp_Arr[0] + " == " + '"' + temp_Arr[1] + '"'
+            else:
+                temp_Arr = value.split(':')
+                universe_clause += " & " + temp_Arr[0] + " == " + '"' + temp_Arr[1] + '"'
+
+        df = df.query(f'{universe_clause}')
+
+    df['temp_percent'] = 100 * df[f'{surveys_weight_field}'] / df.groupby(f'{surveys_admin_key_field}')[f'{surveys_weight_field}'].transform('sum')
+    
+    table = pd.pivot_table(df, values='temp_percent', index=[f'{surveys_admin_key_field}'], columns=[f'{surveys_summary_field}'], aggfunc=np.sum)
+    return table
 
 __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
 
