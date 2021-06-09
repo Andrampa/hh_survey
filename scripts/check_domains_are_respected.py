@@ -23,7 +23,7 @@ for column in data:
                      domain_df = domains_dict[data[column].name]
                      allowed_entries = list(set(domain_df.code))
                      if column_name == 'crp_main':
-                            allowed_entries = [float(i) for i in allowed_entries] # need to convert string like "1,24" to floating number 1.24
+                            allowed_entries = [float(i.replace(",",".")) for i in allowed_entries] # need to convert string like "1,24" to floating number 1.24
                      for entry in column_entries:
                             wrong_data_type = False #when there is at least 1 string, all column entries are imported as string. therefore it may happen that we are just dealing with the wrong data type, and we just need to convert the value to integer
                             if entry not in allowed_entries and not pd.isnull(entry):
