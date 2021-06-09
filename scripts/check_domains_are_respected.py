@@ -3,7 +3,7 @@ from xlsxwriter import Workbook
 import os
 
 
-domains_table = r'C:\temp\data_processing_exports\coded_values_20210604183014.xlsx'
+domains_table = r'C:\temp\data_processing_exports\coded_values_20210609140715.xlsx'
 data_table = r"C:\temp\renamed_table.csv"
 
 output_folder = r'C:/temp'
@@ -18,9 +18,12 @@ for column in data:
        try:
               column_name = data[column].name
               column_entries = list(set(data[column]))
+
               if column_name in domains_dict:
                      domain_df = domains_dict[data[column].name]
                      allowed_entries = list(set(domain_df.code))
+                     if column_name == 'crp_main':
+                            allowed_entries = [float(i) for i in allowed_entries] # need to convert string like "1,24" to floating number 1.24
                      for entry in column_entries:
                             wrong_data_type = False #when there is at least 1 string, all column entries are imported as string. therefore it may happen that we are just dealing with the wrong data type, and we just need to convert the value to integer
                             if entry not in allowed_entries and not pd.isnull(entry):
