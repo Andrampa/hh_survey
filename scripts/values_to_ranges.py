@@ -11,5 +11,9 @@ def group(value,group_size):
     return identified_range
 
 
+#for calculating random values from 0 to 1
+import random
+def weight_calc():
+    return random.uniform(0, 1)
 
 group(3,7)
