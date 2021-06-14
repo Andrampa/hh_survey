@@ -4,23 +4,25 @@ from two_lists_similarity import Calculate_Similarity as cs
 import os
 
 
-geopoll_or_kobo_template = r'C:\temp\kobo_template_table.xlsx' #include the word 'kobo' or 'geopoll' inside the filename
-master_table_template = r'C:\temp\master_table_template.xlsx'
+hh_data = r'C:\temp\renamed_table.csv' #include the word 'kobo' or 'geopoll' inside the filename
+master_table_template = r'C:\temp\hh_master_table.csv'
 output_folder = r'C:/temp'
 
+geopoll_or_kobo = "geopoll"
 
-country_df = pd.read_excel(open(geopoll_or_kobo_template, 'rb'))
-if "kobo" in geopoll_or_kobo_template.lower():
+
+country_df = pd.read_csv(open(hh_data, 'rb'))
+if geopoll_or_kobo == "kobo":
     country_df.columns = country_df.columns.str.replace("[/]", "")
     print("Opening kobo questionnaire")
-elif "geopoll" in geopoll_or_kobo_template.lower():
+elif geopoll_or_kobo == "geopoll":
     print("Opening geopoll questionnaire")
 else:
-    print("Please include Geopoll or Kobo inside the filename: %s " % geopoll_or_kobo_template)
+    print("Please include Geopoll or Kobo inside the filename: %s " % hh_data)
     exit()
 
 print("Opening master table")
-global_df = pd.read_excel(open(master_table_template, 'rb'))
+global_df = pd.read_csv(open(master_table_template, 'rb'))
 
 country_cols = country_df.columns
 global_cols = global_df.columns

@@ -3,7 +3,7 @@ from xlsxwriter import Workbook
 import os
 
 
-table = r'C:\temp\GeoPoll_FAO Nigeria NE Interim Data_20210605pm.csv' #include the word 'kobo' or 'geopoll' inside the filename
+table = r'C:\temp\geopoll_test_for_ibrahim.csv' #include the word 'kobo' or 'geopoll' inside the filename
 
 output_folder = r'C:/temp'
 output_file = os.path.join(output_folder,'renamed_table.csv')

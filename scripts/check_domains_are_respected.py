@@ -3,7 +3,7 @@ from xlsxwriter import Workbook
 import os
 
 
-domains_table = r'C:\temp\data_processing_exports\coded_values_20210609140715.xlsx'
+domains_table = r'C:\temp\data_processing_exports\coded_values_20210611174935_template_en.xlsx'
 data_table = r"C:\temp\renamed_table.csv"
 
 output_folder = r'C:/temp'
