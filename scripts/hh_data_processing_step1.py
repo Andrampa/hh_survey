@@ -1,28 +1,132 @@
 import pandas as pd
+from xlsxwriter import Workbook
+import os, ntpath
+from datetime import datetime
+import numpy as np
 
-df = pd.read_excel(r"C:\Users\Amparore\Downloads\HH_aggregation_SQL_rules_original.xlsx", 'Sheet2') # can also index sheet by name or fetch all sheets
-old_list = df['field_name'].tolist()
+#renaming fields (in order to match and to adapt kobo names removing double underscores
+#if missing, add and populate adm0_name adm0_iso3 round
+##reclass languages
+##convert time string to datetime fields
+
+####IRQ
+table = r'C:\temp\IRQ_R5_step0.csv' # IRQ_R5_step0.csv NGA_R1_step0.csv
+output_folder = r'C:\temp'
+adm0_name = "Iraq"
+adm0_iso3 = "IRQ"
+round = 5
+languages_country = {"ar":'Arabic'}   #Hausa {"ar":'Arabic'} {1:'English',2:"Hausa"}
+qc_enumerator = "Kobo" #"Geopoll" or "Kobo"
+qc_method = "CATI"
+qc_step0_date = "01-07-2021"   ##NGA: "28-06-2021"  IRQ "01-07-2021"
+qc_step1_username = "andrea.amparore"
 
 
-new_list = ['OBJECTID', 'survey_id', 'operator_id', 'adm0_name', 'adm0_iso3', 'adm1_pcode', 'adm1_name', 'adm2_pcode', 'adm2_name', 'adm3_pcode', 'adm3_name', 'survey_date', 'survey_date_text', 'round', 'total_case_duration', 'resp_age', 'resp_age_rng', 'resp_gender', 'hh_agricactivity', 'hh_gender', 'hh_education', 'hh_wealth_water', 'hh_wealth_toilet', 'hh_wealth_light', 'hh_residencetype', 'hh_size', 'hh_size_rng', 'hh_maritalstat', 'hh_age', 'hh_age_rng', 'income_main', 'income_main_amount', 'income_main_comp', 'income_sec', 'income_sec_amount', 'income_sec_comp', 'income_third', 'income_third_amount', 'income_third_comp', 'tot_income', 'covid_goodstransp', 'covid_marketclosed', 'covid_borderclosed', 'covid_stayhome', 'covid_gatherings', 'covid_processclosed', 'covid_other', 'covid_otherspecify', 'covid_none', 'covid_dk', 'covid_ref', 'shock_noshock', 'shock_sicknessordeathofhh', 'shock_lostemplorwork', 'shock_otherintrahhshock', 'shock_higherfoodprices', 'shock_higherfuelprices', 'shock_cantworkordobusiness', 'shock_othereconomicshock', 'shock_pestoutbreak', 'shock_plantdisease', 'shock_animaldisease', 'shock_napasture', 'shock_othercropandlivests', 'shock_coldtemporhail', 'shock_flood', 'shock_hurricane', 'shock_drought', 'shock_earthquake', 'shock_landslides', 'shock_firenatural', 'shock_othernathazard', 'shock_violenceinsecconf', 'shock_theftofprodassets', 'shock_fire', 'shock_othermanmadehazard', 'shock_dk', 'shock_ref', 'shock_otherspecify', 'hh_explanation', 'crp_main', 'crp_otherspecify', 'crp_landsize', 'crp_landright', 'crp_landright_otherspecify', 'crp_irrigation', 'crp_irrigation_otherspecify', 'crp_seed_ownprod', 'crp_seed_market', 'crp_seed_company', 'crp_seed_freedist', 'crp_seed_bank', 'crp_seed_gov', 'crp_seed_other', 'crp_seed_otherspecify', 'crp_seed_dk', 'crp_seed_ref', 'crp_area_change', 'crp_harv_change', 'crp_proddif', 'crp_proddif_plantdisease', 'crp_proddif_seedquality', 'crp_proddif_lostordamaged', 'crp_proddif_naplot', 'crp_proddif_nafertilizer', 'crp_proddif_naseeds', 'crp_proddif_nainsecticides', 'crp_proddif_nalabour', 'crp_proddif_namachinery', 'crp_proddif_nafuelorelect', 'crp_proddif_soilerosion', 'crp_proddif_irrigation', 'crp_proddif_other', 'crp_proddif_otherspecify', 'crp_proddif_dk', 'crp_proddif_ref', 'crp_salesdif', 'crp_saledif_marketing_cost', 'crp_saledif_damagelosses', 'crp_saledif_lowdemand', 'crp_saledif_lowprice', 'crp_saledif_dif_processing', 'crp_saledif_other', 'crp_saledif_otherspecify', 'crp_saledif_dk', 'crp_saledif_ref', 'crp_salesprice', 'crp_proc', 'crp_proc_mach_mill', 'crp_proc_mach_thresher', 'crp_proc_mach_dryingfacilit', 'crp_proc_mach_none', 'crp_proc_mach_other', 'crp_proc_mach_otherspecify', 'crp_proc_mach_dk', 'crp_proc_mach_ref', 'crp_proc_owner_yours', 'crp_proc_owner_farmin', 'crp_proc_owner_farmout', 'crp_proc_owner_millin', 'crp_proc_owner_millout', 'crp_proc_owner_other', 'crp_proc_owner_otherspecify', 'crp_proc_owner_dk', 'crp_proc_owner_ref', 'crp_proc_state', 'crp_main_cc', 'ls_main', 'ls_main_otherspecify', 'ls_num_lastyr', 'ls_num_now', 'ls_num_diff', 'ls_num_nochange', 'ls_num_inc_didnotsellasmany', 'ls_num_inc_moreborn', 'ls_num_inc_purchbarterdmore', 'ls_num_inc_receivedfree', 'ls_num_dec_animalsdied', 'ls_num_dec_soldmoregoodprice', 'ls_num_dec_soldmoredistsale', 'ls_num_dec_anmlescloststolen', 'ls_num_dec_killedorgaveanml', 'ls_num_inc_dec_other', 'ls_num_inc_dec_otherspecify', 'ls_num_inc_dec_dk', 'ls_num_inc_dec_ref', 'ls_food_supply_openpasture', 'ls_food_supply_commonpasture', 'ls_food_supply_fieldselfprodfod', 'ls_food_supply_purchased', 'ls_food_supply_other', 'ls_food_supply_otherspecify', 'ls_food_supply_dk', 'ls_food_supply_ref', 'ls_proddif', 'ls_proddif_diffeedpurchase', 'ls_proddif_constaccesstopasture', 'ls_proddif_constaccesstowater', 'ls_proddif_difaccessvetserv', 'ls_proddif_difaccessvetinp', 'ls_proddif_diseases', 'ls_proddif_theftorinsecurity', 'ls_proddif_pooraccesstolmarket', 'ls_proddif_noaccesstocredit', 'ls_proddif_lackoflabour', 'ls_proddif_other', 'ls_proddif_otherspecify', 'ls_proddif_dk', 'ls_proddif_ref', 'ls_salesmain', 'ls_salesdif', 'ls_salesdif_smallerprofits', 'ls_salesdif_damageandlosses', 'ls_salesdif_lowdemand', 'ls_salesdif_lowprices', 'ls_salesdif_slaughterhouse', 'ls_salesdif_processing', 'ls_salesdif_other', 'ls_salesdif_otherspecify', 'ls_salesdif_dk', 'ls_salesdif_ref', 'ls_salesprice', 'ls_proc', 'ls_proc_slaughter', 'ls_proc_meatprocess', 'ls_proc_dairyprocess', 'ls_proc_leather', 'ls_proc_other', 'ls_proc_otherspecify', 'ls_proc_dk', 'ls_proc_ref', 'ls_proc_fac_priv_cold_transp', 'ls_proc_fac_coop_cold_transp', 'ls_proc_fac_slaughterinncomm', 'ls_proc_fac_slaughteroutofcomm', 'ls_proc_fac_farm_dairy', 'ls_proc_fac_coop_dairy', 'ls_proc_fac_other', 'ls_proc_fac_otherspecify', 'ls_proc_fac_none', 'ls_proc_fac_dk', 'ls_proc_fac_ref', 'ls_proc_fac_state', 'fish_main_coastal', 'fish_main_opensea', 'fish_main_lakespondsrivers', 'fish_main_aquaculture', 'fish_main_dk', 'fish_main_ref', 'fish_change', 'fish_proddif', 'fish_proddif_find', 'fish_proddif_covid', 'fish_proddif_fuel', 'fish_proddif_inputs', 'fish_proddif_labour', 'fish_proddif_other', 'fish_proddif_otherspecify', 'fish_proddif_dk', 'fish_proddif_ref', 'fish_inputdif_bait', 'fish_inputdif_net', 'fish_inputdif_gear', 'fish_inputdif_ice', 'fish_inputdif_fuel', 'fish_inputdif_boatrepairs', 'fish_inputdif_other', 'fish_inputdif_otherspecify', 'fish_inputdif_dk', 'fish_inputdif_ref', 'fish_salesmain', 'fish_salesmain_otherspecify', 'fish_salesdif', 'fish_saledif_smallerprofits', 'fish_saledif_damageandlosses', 'fish_saledif_lowdemand', 'fish_saledif_lowprices', 'fish_saledif_processing', 'fish_saledif_other', 'fish_saledif_otherspecify', 'fish_saledif_dk', 'fish_saledif_ref', 'fish_salesprice', 'fies_worried', 'fies_healthy', 'fies_fewfoods', 'fies_skipped', 'fies_ateless', 'fies_ranout', 'fies_ranout_hhs', 'fies_hungry', 'fies_hungry_hhs', 'fies_whlday', 'fies_whlday_hhs', 'fies_rawscore', 'fies_class', 'fcs', 'fcs_cereal_days', 'fcs_tubers_days', 'fcs_staple_days', 'fcs_pulses_days', 'fcs_fruit_days', 'fcs_meat_fish_days', 'fcs_dairy_days', 'fcs_sugar_days', 'fcs_oil_days', 'fcs_cereal_source', 'fcs_tubers_source', 'fcs_staple_source', 'fcs_pulses_source', 'fcs_fruit_source', 'fcs_meat_fish_source', 'fcs_dairy_source', 'fcs_sugar_source', 'fcs_oil_source', 'fcg', 'hhs', 'hhg', 'cs_stress_hh_assets', 'cs_stress_spent_savings', 'cs_stress_sold_more_animals', 'cs_stress_eat_elsewhere', 'cs_stress_borrowed_or_helped', 'cs_stress_credit', 'cs_stress_borrowed_money', 'cs_stress_changed_school', 'cs_crisis_sold_prod_assets', 'cs_crisis_no_school', 'cs_crisis_reduced_health_exp', 'cs_crisis_harv_immature_crops', 'cs_crisis_consumed_seed_stocks', 'cs_crisis_decr_agric_input_exp', 'cs_emergency_sold_house', 'cs_emergency_begged', 'cs_emergency_illegal', 'cs_emergency_sold_last_female', 'cs_emergency_hh_migration', 'lcsi', 'rcsi_less_preferred_foods', 'rcsi_borrowed_food', 'rcsi_limit_portions', 'rcsi_restrict_adult_consumption', 'rcsi_reduce_number_meals', 'rcsi_score', 'rcsi_class', 'hdds_cereals', 'hdds_rootstubers', 'hdds_vegetables', 'hdds_fruits', 'hdds_meat', 'hdds_eggs', 'hdds_fish', 'hdds_legumes', 'hdds_milkdairy', 'hdds_oils', 'hdds_sugar', 'hdds_condiments', 'hdds_score', 'hdds_class', 'need', 'need_seeds', 'need_fertilizers', 'need_pesticides', 'need_tools', 'need_accesstoirrigationwater', 'need_accesstoland', 'need_animalfeed', 'need_veterinaryservices', 'need_veterinaryinputs', 'need_animalsalemingarantdprice', 'need_restockinganimals', 'need_supportforprocessprod', 'need_supptransofanimalsorprod', 'need_acstomechanisedequipprod', 'need_marketingsupport', 'need_cashassistance', 'need_loans', 'need_storageequipmentorfaci', 'need_techsupporextensionserv', 'need_landrehabilitation', 'need_fishequiorothersuppforfish', 'need_infoonsafetymeasures', 'need_other', 'need_otherspecify', 'need_dk', 'need_ref', 'need_received_food', 'need_received_cashvouchers', 'need_received_seeds', 'need_received_extensionservices', 'need_received_livestockfeed', 'need_received_other', 'need_received_otherspecify', 'need_received_noassistreceived', 'need_received_dk', 'need_received_ref', 'callback', 'language', 'weight_base', 'weight_quota', 'weight_crop_prod', 'weight_livestock_prod', 'weight_wealth', 'weight_gender', 'weight_educ', 'weight_final', 'percent', 'GlobalID', 'qc_step0_date', 'qc_step1_date', 'qc_step1_username', 'qc_step2_date', 'qc_step2_username', 'qc_enumerator', 'qc_method']
+# ####NGA
+# table = r'C:\temp\NGA_R1_step0.csv' # IRQ_R5_step0.csv NGA_R1_step0.csv
+# output_folder = r'C:\temp'
+# adm0_name = "Nigeria"
+# adm0_iso3 = "NGA"
+# round = 1
+# languages_country = {1:'English',2:"Hausa"}   #Hausa {"ar":'Arabic'} {1:'English',2:"Hausa"}
+# qc_enumerator = "Geopoll" #"Geopoll" or "Kobo"
+# qc_method = "CATI"
+# qc_step0_date = "28-06-2021"   ##NGA: "28-06-2021"  IRQ "01-07-2021"
+# qc_step1_username = "andrea.amparore"
 
-df = pd.read_excel(r"C:\Users\Amparore\Downloads\HH_aggregation_SQL_rules_edited.xlsx", 'Sheet2') # can also index sheet by name or fetch all sheets
-new_list = df['field_name'].tolist()
 
 
-#print (new_list)
 
-old_new = list(set(old_list) - set(new_list))
-new_old = list(set(new_list) - set(old_list))
+filename = ntpath.basename(table).split(".")[0]
+if "step0" in table:
+    output_file = os.path.join(output_folder, filename.replace("step0","step1") + ".csv")
+elif "step_0" in table:
+    output_file = os.path.join(output_folder, filename.replace("step_0","step_1") + ".csv")
+else:
+    output_file = os.path.join(output_folder,filename +'_step1.csv')
+df = pd.read_csv(open(table, 'rb'), encoding = "ISO-8859-1")
 
-print("only in old:")
-old_new.sort()
-for i in old_new:
-    if 'specify' not in i:
-        print(i)
-print(old_new)
-print("only in new:")
-new_old.sort()
-for i in new_old:
-    if 'specify' not in i:
-        print(i)
+#replace double underscore  in case of Kobo dataset
+df.columns = df.columns.str.replace("__", "_")
+
+###rename specific fields
+
+dict = {"_uuid":"survey_id","enumerator":"operator_id","start":"survey_date_time",'language2' : 'language',
+        "covid_policy_otherspecified":"covid_otherspecify", "crp_salesdif_otherspecify": "crp_saledif_otherspecify",
+        "fish_salesdif_otherspecify": "fish_saledif_otherspecify","shock_otherspecified":"shock_otherspecify","cs_begging":"cs_emergency_begged","cs_borrowmoney":"cs_stress_borrowed_money","cs_eatplantingseeds":"cs_crisis_consumed_seed_stocks","cs_purchasedfoodcredit":"cs_stress_credit",
+       "cs_soldfemanimals":"cs_emergency_sold_last_female","cs_soldhhassetsgoods":"cs_stress_hh_assets",
+       "cs_soldlandhouse":"cs_emergency_sold_house","cs_soldprodassets":"cs_crisis_sold_prod_assets",
+       "cs_spentsavings":"cs_stress_spent_savings","cs_withdrewchild":"cs_crisis_no_school","ls_main_other":"ls_main_otherspecify","crp_irrigation_other":"crp_irrigation_otherspecify",
+        "ls_food_supply_commngpastureland":"ls_food_supply_commonpasture","ls_food_supply_purchasefeedorfodderonmarkets":"ls_food_supply_purchased",
+        "fish_salesdif_1":"fish_salesdif","cs_crisis_sold_prod_assets":"cs_crisis_sold_prod_assets","cs_crisis_sold_productive_assets":"cs_crisis_sold_prod_assets",
+        "crp_seed_supply_otherspecify":"crp_seed_otherspecify","cs_crisis_sold_productive_asset":"cs_crisis_sold_prod_assets","opt_in_date":"survey_date_time",
+        "adm0_ISO3":"adm0_iso3"}
+
+
+df.rename(columns=dict, inplace=True)
+###if missing (in kobo) add adm0_name adm-_iso3 round
+if 'adm0_name' in df.columns:
+    print ("field %s exists already" % 'adm0_name')
+else:
+    df["adm0_name"] = adm0_name
+if 'adm0_iso3' in df.columns:
+    print ("field %s exists already" % 'adm0_iso3')
+else:
+    df["adm0_iso3"] = adm0_iso3
+if 'round' in df.columns:
+    print ("field %s exists already" % 'round')
+else:
+    df["round"] = round
+
+
+##convert time from string to datetime format
+if "T" in df['survey_date_time'].iloc[0]:
+    df['survey_date'] = df['survey_date_time'].str.split("T").str[0] #this works for geopoll 2021-06-23T16:27:48.892+03:00
+    df['survey_date_dateformat'] = pd.to_datetime(df.survey_date)
+    df['survey_date'] = df['survey_date_dateformat'].dt.strftime('%d-%m-%Y')
+else:
+    df['survey_date'] = df['survey_date_time'].str.split(" ").str[0]  # this works for kobo
+    df['survey_date_dateformat'] = pd.to_datetime(df.survey_date)
+    df['survey_date'] = df['survey_date_dateformat'].dt.strftime('%d-%m-%Y')
+
+
+
+
+if 'survey_created_date' in df.columns:
+    del df['survey_created_date']
+if 'survey_date_dateformat' in df.columns:
+    del df['survey_date_dateformat']
+
+##removing personal info
+if 'phone_number' in df.columns:
+    del df['phone_number']
+
+##reclassify languages
+domains_table = r'C:\temp\coded_values_20210708151543.xlsx'
+domains_dict = pd.read_excel(domains_table, sheet_name=None)
+if 'language' in domains_dict:
+    reference_languages_df = domains_dict['language']
+
+for countr_language_code, countr_language_name in languages_country.items():
+    general_code_for_that_language = reference_languages_df.loc[reference_languages_df['label'] == countr_language_name]['code'].iloc[0]
+    df.loc[df.language == countr_language_code, 'language_rec'] = general_code_for_that_language
+
+df['language'] = df['language_rec']
+del df['language_rec']
+if 'resp_language' in df.columns:
+    del df['resp_language']
+
+##add QC fields:
+
+df['qc_enumerator'] = qc_enumerator
+df['qc_method'] = qc_method
+df['qc_step0_date'] = qc_step0_date
+df['qc_step1_date'] = datetime.now().strftime("%d-%m-%Y")
+df['qc_step1_username'] = qc_step1_username
+df['qc_step2_date'] = np.nan
+df['qc_step2_username'] = np.nan
+
+
+
+print("Saving processed dataset: %s" % output_file)
+df.to_csv(output_file)
