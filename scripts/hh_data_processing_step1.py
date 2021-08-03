@@ -9,30 +9,30 @@ import numpy as np
 ##reclass languages
 ##convert time string to datetime fields
 
-####IRQ
-table = r'C:\temp\IRQ_R5_step0.csv' # IRQ_R5_step0.csv NGA_R1_step0.csv
-output_folder = r'C:\temp'
-adm0_name = "Iraq"
-adm0_iso3 = "IRQ"
-round = 5
-languages_country = {"ar":'Arabic'}   #Hausa {"ar":'Arabic'} {1:'English',2:"Hausa"}
-qc_enumerator = "Kobo" #"Geopoll" or "Kobo"
-qc_method = "CATI"
-qc_step0_date = "01-07-2021"   ##NGA: "28-06-2021"  IRQ "01-07-2021"
-qc_step1_username = "andrea.amparore"
-
-
-# ####NGA
-# table = r'C:\temp\NGA_R1_step0.csv' # IRQ_R5_step0.csv NGA_R1_step0.csv
+# ####IRQ
+# table = r'C:\temp\IRQ_R5_step0.csv' # IRQ_R5_step0.csv NGA_R1_step0.csv
 # output_folder = r'C:\temp'
-# adm0_name = "Nigeria"
-# adm0_iso3 = "NGA"
-# round = 1
-# languages_country = {1:'English',2:"Hausa"}   #Hausa {"ar":'Arabic'} {1:'English',2:"Hausa"}
-# qc_enumerator = "Geopoll" #"Geopoll" or "Kobo"
+# adm0_name = "Iraq"
+# adm0_iso3 = "IRQ"
+# round = 5
+# languages_country = {"ar":'Arabic'}   #Hausa {"ar":'Arabic'} {1:'English',2:"Hausa"}
+# qc_enumerator = "Kobo" #"Geopoll" or "Kobo"
 # qc_method = "CATI"
-# qc_step0_date = "28-06-2021"   ##NGA: "28-06-2021"  IRQ "01-07-2021"
+# qc_step0_date = "01-07-2021"   ##NGA: "28-06-2021"  IRQ "01-07-2021"
 # qc_step1_username = "andrea.amparore"
+
+
+####NGA
+table = r'C:\temp\NGA_R1_step0.csv' # IRQ_R5_step0.csv NGA_R1_step0.csv
+output_folder = r'C:\temp'
+adm0_name = "Nigeria"
+adm0_iso3 = "NGA"
+round = 1
+languages_country = {1:'English',2:"Hausa"}   #Hausa {"ar":'Arabic'} {1:'English',2:"Hausa"}
+qc_enumerator = "Geopoll" #"Geopoll" or "Kobo"
+qc_method = "CATI"
+qc_step0_date = "28-06-2021"   ##NGA: "28-06-2021"  IRQ "01-07-2021"
+qc_step1_username = "andrea.amparore"
 
 
 
@@ -90,12 +90,18 @@ else:
     df['survey_date'] = df['survey_date_dateformat'].dt.strftime('%d-%m-%Y')
 
 
-
-
 if 'survey_created_date' in df.columns:
     del df['survey_created_date']
 if 'survey_date_dateformat' in df.columns:
     del df['survey_date_dateformat']
+
+#converting total_case_duration from string to integer (number of minutes, rounded to the minute)
+if 'total_case_duration' in df.columns:
+    df['total_case_duration_minutes'] = df['total_case_duration'].str[2:4].astype(int) + (df['total_case_duration'].str[0:1].astype(int)*60) + (df['total_case_duration'].str[-2:].astype(int)/60)
+    df['total_case_duration_minutes_round'] = df['total_case_duration_minutes'].round().astype(int)
+    df['total_case_duration'] = df['total_case_duration_minutes_round']
+    del df['total_case_duration_minutes']
+    del df['total_case_duration_minutes_round']
 
 ##removing personal info
 if 'phone_number' in df.columns:
