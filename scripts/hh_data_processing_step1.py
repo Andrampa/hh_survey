@@ -9,41 +9,56 @@ import numpy as np
 ##reclass languages
 ##convert time string to datetime fields
 
-# ####IRQ
-# table = r'C:\temp\IRQ_R5_step0.csv' # IRQ_R5_step0.csv NGA_R1_step0.csv
-# output_folder = r'C:\temp'
-# adm0_name = "Iraq"
-# adm0_iso3 = "IRQ"
-# round = 5
-# languages_country = {"ar":'Arabic'}   #Hausa {"ar":'Arabic'} {1:'English',2:"Hausa"}
-# qc_enumerator = "Kobo" #"Geopoll" or "Kobo"
-# qc_method = "CATI"
-# qc_step0_date = "01-07-2021"   ##NGA: "28-06-2021"  IRQ "01-07-2021"
-# qc_step1_username = "andrea.amparore"
-
-
-####NGA
-table = r'C:\temp\NGA_R1_step0.csv' # IRQ_R5_step0.csv NGA_R1_step0.csv
+####IRQ
+table = r'C:\temp\IRQ_R5_step0.csv' # IRQ_R5_step0.csv NGA_R1_step0.csv
 output_folder = r'C:\temp'
-adm0_name = "Nigeria"
-adm0_iso3 = "NGA"
-round = 1
-languages_country = {1:'English',2:"Hausa"}   #Hausa {"ar":'Arabic'} {1:'English',2:"Hausa"}
-qc_enumerator = "Geopoll" #"Geopoll" or "Kobo"
+adm0_name = "Iraq"
+adm0_iso3 = "IRQ"
+round = 5
+languages_country = {"ar":'Arabic'}   #Hausa {"ar":'Arabic'} {1:'English',2:"Hausa"}
+qc_enumerator = "Kobo" #"Geopoll" or "Kobo"
 qc_method = "CATI"
-qc_step0_date = "28-06-2021"   ##NGA: "28-06-2021"  IRQ "01-07-2021"
+qc_step0_date = "01-07-2021"   ##NGA: "28-06-2021"  IRQ "01-07-2021"
 qc_step1_username = "andrea.amparore"
 
 
+# ####NGA
+# table = r'C:\temp\NGA_R1_step0.csv' # IRQ_R5_step0.csv NGA_R1_step0.csv
+# output_folder = r'C:\temp'
+# adm0_name = "Nigeria"
+# adm0_iso3 = "NGA"
+# round = 1
+# languages_country = {1:'English',2:"Hausa"}   #Hausa {"ar":'Arabic'} {1:'English',2:"Hausa"}
+# qc_enumerator = "Geopoll" #"Geopoll" or "Kobo"
+# qc_method = "CATI"
+# qc_step0_date = "28-06-2021"   ##NGA: "28-06-2021"  IRQ "01-07-2021"
+# qc_step1_username = "andrea.amparore"
+#
+# ####LEB
+# table = r'C:\temp\LEB_R1_step0.csv' # IRQ_R5_step0.csv NGA_R1_step0.csv
+# output_folder = r'C:\temp'
+# adm0_name = "Lebanon"
+# adm0_iso3 = "LEB"
+# round = 1
+# languages_country = {"ar":'Arabic',"en":'English'}   #Hausa {"ar":'Arabic'} {1:'English',2:"Hausa"}
+# qc_enumerator = "Kobo" #"Geopoll" or "Kobo"
+# qc_method = "CATI"
+# qc_step0_date = "04-08-2021"   ##NGA: "28-06-2021"  IRQ "01-07-2021"
+# qc_step1_username = "andrea.amparore"
 
+
+startTime = datetime.now()
+now = datetime.now().strftime('%Y%m%d')
 
 filename = ntpath.basename(table).split(".")[0]
+
+
 if "step0" in table:
-    output_file = os.path.join(output_folder, filename.replace("step0","step1") + ".csv")
+    output_file = os.path.join(output_folder, filename.replace("step0","step1") + "_%s.csv" % now)
 elif "step_0" in table:
-    output_file = os.path.join(output_folder, filename.replace("step_0","step_1") + ".csv")
+    output_file = os.path.join(output_folder, filename.replace("step_0","step_1") + "_%s.csv"% now)
 else:
-    output_file = os.path.join(output_folder,filename +'_step1.csv')
+    output_file = os.path.join(output_folder,filename +'_step1_%s.csv'% now)
 df = pd.read_csv(open(table, 'rb'), encoding = "ISO-8859-1")
 
 #replace double underscore  in case of Kobo dataset
@@ -96,16 +111,29 @@ if 'survey_date_dateformat' in df.columns:
     del df['survey_date_dateformat']
 
 #converting total_case_duration from string to integer (number of minutes, rounded to the minute)
-if 'total_case_duration' in df.columns:
+if 'total_case_duration' in df.columns: #in geopoll case
     df['total_case_duration_minutes'] = df['total_case_duration'].str[2:4].astype(int) + (df['total_case_duration'].str[0:1].astype(int)*60) + (df['total_case_duration'].str[-2:].astype(int)/60)
     df['total_case_duration_minutes_round'] = df['total_case_duration_minutes'].round().astype(int)
     df['total_case_duration'] = df['total_case_duration_minutes_round']
     del df['total_case_duration_minutes']
     del df['total_case_duration_minutes_round']
+else: #in Kobo case
+    df['survey_start_datetime'] = pd.to_datetime(df['survey_date_time'])
+    df['survey_end_datetime'] = pd.to_datetime(df['end'])
+    df['total_case_duration'] = df['survey_end_datetime'] - df['survey_start_datetime']
+    df['total_case_duration'] = (pd.to_numeric(df['total_case_duration'].dt.components['days'])*60*24 + pd.to_numeric(df['total_case_duration'].dt.components['hours'])*60 + pd.to_numeric(df['total_case_duration'].dt.components['minutes']) + pd.to_numeric(df['total_case_duration'].dt.components['seconds'])/60).round().astype(int)
 
 ##removing personal info
 if 'phone_number' in df.columns:
     del df['phone_number']
+
+
+##removing useless fiels that could generate confusion
+fields_to_delete = ['incomemain','incomesec','incomethird']
+for field in fields_to_delete:
+    if field in df.columns:
+        del df[field]
+        print("deleted %s" % field)
 
 ##reclassify languages
 domains_table = r'C:\temp\coded_values_20210708151543.xlsx'
@@ -131,7 +159,6 @@ df['qc_step1_date'] = datetime.now().strftime("%d-%m-%Y")
 df['qc_step1_username'] = qc_step1_username
 df['qc_step2_date'] = np.nan
 df['qc_step2_username'] = np.nan
-
 
 
 print("Saving processed dataset: %s" % output_file)
