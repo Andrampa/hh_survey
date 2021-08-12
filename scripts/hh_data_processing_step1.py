@@ -9,17 +9,17 @@ import numpy as np
 ##reclass languages
 ##convert time string to datetime fields
 
-####IRQ
-table = r'C:\temp\IRQ_R5_step0.csv' # IRQ_R5_step0.csv NGA_R1_step0.csv
-output_folder = r'C:\temp'
-adm0_name = "Iraq"
-adm0_iso3 = "IRQ"
-round = 5
-languages_country = {"ar":'Arabic'}   #Hausa {"ar":'Arabic'} {1:'English',2:"Hausa"}
-qc_enumerator = "Kobo" #"Geopoll" or "Kobo"
-qc_method = "CATI"
-qc_step0_date = "01-07-2021"   ##NGA: "28-06-2021"  IRQ "01-07-2021"
-qc_step1_username = "andrea.amparore"
+# ####IRQ
+# table = r'C:\temp\IRQ_R5_step0.csv' # IRQ_R5_step0.csv NGA_R1_step0.csv
+# output_folder = r'C:\temp'
+# adm0_name = "Iraq"
+# adm0_iso3 = "IRQ"
+# round = 5
+# languages_country = {"ar":'Arabic'}   #Hausa {"ar":'Arabic'} {1:'English',2:"Hausa"}
+# qc_enumerator = "Kobo" #"Geopoll" or "Kobo"
+# qc_method = "CATI"
+# qc_step0_date = "01-07-2021"   ##NGA: "28-06-2021"  IRQ "01-07-2021"
+# qc_step1_username = "andrea.amparore"
 
 
 # ####NGA
@@ -34,17 +34,29 @@ qc_step1_username = "andrea.amparore"
 # qc_step0_date = "28-06-2021"   ##NGA: "28-06-2021"  IRQ "01-07-2021"
 # qc_step1_username = "andrea.amparore"
 #
-# ####LEB
-# table = r'C:\temp\LEB_R1_step0.csv' # IRQ_R5_step0.csv NGA_R1_step0.csv
-# output_folder = r'C:\temp'
-# adm0_name = "Lebanon"
-# adm0_iso3 = "LEB"
-# round = 1
-# languages_country = {"ar":'Arabic',"en":'English'}   #Hausa {"ar":'Arabic'} {1:'English',2:"Hausa"}
-# qc_enumerator = "Kobo" #"Geopoll" or "Kobo"
-# qc_method = "CATI"
-# qc_step0_date = "04-08-2021"   ##NGA: "28-06-2021"  IRQ "01-07-2021"
-# qc_step1_username = "andrea.amparore"
+####LEB
+table = r'C:\temp\LEB_R1_step0.csv' # IRQ_R5_step0.csv NGA_R1_step0.csv
+output_folder = r'C:\temp'
+adm0_name = "Lebanon"
+adm0_iso3 = "LBN"
+round = 1
+languages_country = {"ar":'Arabic',"en":'English'}   #Hausa {"ar":'Arabic'} {1:'English',2:"Hausa"}
+qc_enumerator = "Kobo" #"Geopoll" or "Kobo"
+qc_method = "CATI"
+qc_step0_date = "04-08-2021"   ##NGA: "28-06-2021"  IRQ "01-07-2021"
+qc_step1_username = "andrea.amparore"
+
+####BGD
+table = r'C:\temp\BGD_R2_step0.csv' # IRQ_R5_step0.csv NGA_R1_step0.csv
+output_folder = r'C:\temp'
+adm0_name = "Bangladesh"
+adm0_iso3 = "BGD"
+round = 2
+languages_country = {"ar":'Arabic',"en":'English'}   #Hausa {"ar":'Arabic'} {1:'English',2:"Hausa"}
+qc_enumerator = "Geopoll" #"Geopoll" or "Kobo"
+qc_method = "CATI"
+qc_step0_date = "11-08-2021"   ##NGA: "28-06-2021"  IRQ "01-07-2021"
+qc_step1_username = "andrea.amparore"
 
 
 startTime = datetime.now()
@@ -75,7 +87,7 @@ dict = {"_uuid":"survey_id","enumerator":"operator_id","start":"survey_date_time
         "ls_food_supply_commngpastureland":"ls_food_supply_commonpasture","ls_food_supply_purchasefeedorfodderonmarkets":"ls_food_supply_purchased",
         "fish_salesdif_1":"fish_salesdif","cs_crisis_sold_prod_assets":"cs_crisis_sold_prod_assets","cs_crisis_sold_productive_assets":"cs_crisis_sold_prod_assets",
         "crp_seed_supply_otherspecify":"crp_seed_otherspecify","cs_crisis_sold_productive_asset":"cs_crisis_sold_prod_assets","opt_in_date":"survey_date_time",
-        "adm0_ISO3":"adm0_iso3"}
+        "adm0_ISO3":"adm0_iso3", "_id":"survey_id", "diff_heads": "ls_num_diff"}
 
 
 df.rename(columns=dict, inplace=True)
@@ -92,7 +104,6 @@ if 'round' in df.columns:
     print ("field %s exists already" % 'round')
 else:
     df["round"] = round
-
 
 ##convert time from string to datetime format
 if "T" in df['survey_date_time'].iloc[0]:
@@ -126,14 +137,9 @@ else: #in Kobo case
 ##removing personal info
 if 'phone_number' in df.columns:
     del df['phone_number']
+if 'resp_name' in df.columns:
+    del df['resp_name']
 
-
-##removing useless fiels that could generate confusion
-fields_to_delete = ['incomemain','incomesec','incomethird']
-for field in fields_to_delete:
-    if field in df.columns:
-        del df[field]
-        print("deleted %s" % field)
 
 ##reclassify languages
 domains_table = r'C:\temp\coded_values_20210708151543.xlsx'
@@ -159,6 +165,22 @@ df['qc_step1_date'] = datetime.now().strftime("%d-%m-%Y")
 df['qc_step1_username'] = qc_step1_username
 df['qc_step2_date'] = np.nan
 df['qc_step2_username'] = np.nan
+
+
+####removing unnecessary fields:
+
+unnecessary_fields_to_remove = ["CallbackMessageEN","Interview_End_Time","Interview_Start_Time","Refusal","WhenCallBack",
+                                "_index","_notes","_status","_submission_time","_submitted_by","_tags",
+                                "_validation_status","_version_","calldispo","closeout","copingstrategies",
+                                "crpmain","end","enumerator_","fies","fishsalesmain",
+                                "intro_foodsec","introduction","lsmain","lssalesmain","othernumber","resp_agree",
+                                "survey_date_time","survey_end_datetime","survey_start_datetime","today",
+                                "hdds_confirmation","income_main_amount_conf","income_sec_amount_conf",
+                                "income_third_amount_conf",'incomemain','incomesec','incomethird']
+for field_to_remove in unnecessary_fields_to_remove:
+    if field_to_remove in df.columns:
+        del df[field_to_remove]
+        print("deleted %s" % field_to_remove)
 
 
 print("Saving processed dataset: %s" % output_file)
