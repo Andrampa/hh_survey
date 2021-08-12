@@ -9,6 +9,10 @@ import numpy as np
 ##reclass languages
 ##convert time string to datetime fields
 
+
+# BEGINNING OF COUNTRY SPECIFIC INFO TO EDIT BEFORE RUNNING THE SCRIPT
+######################################
+
 # ####IRQ
 # table = r'C:\temp\IRQ_R5_step0.csv' # IRQ_R5_step0.csv NGA_R1_step0.csv
 # output_folder = r'C:\temp'
@@ -34,17 +38,17 @@ import numpy as np
 # qc_step0_date = "28-06-2021"   ##NGA: "28-06-2021"  IRQ "01-07-2021"
 # qc_step1_username = "andrea.amparore"
 #
-####LEB
-table = r'C:\temp\LEB_R1_step0.csv' # IRQ_R5_step0.csv NGA_R1_step0.csv
-output_folder = r'C:\temp'
-adm0_name = "Lebanon"
-adm0_iso3 = "LBN"
-round = 1
-languages_country = {"ar":'Arabic',"en":'English'}   #Hausa {"ar":'Arabic'} {1:'English',2:"Hausa"}
-qc_enumerator = "Kobo" #"Geopoll" or "Kobo"
-qc_method = "CATI"
-qc_step0_date = "04-08-2021"   ##NGA: "28-06-2021"  IRQ "01-07-2021"
-qc_step1_username = "andrea.amparore"
+# ####LEB
+# table = r'C:\temp\LEB_R1_step0.csv' # IRQ_R5_step0.csv NGA_R1_step0.csv
+# output_folder = r'C:\temp'
+# adm0_name = "Lebanon"
+# adm0_iso3 = "LBN"
+# round = 1
+# languages_country = {"ar":'Arabic',"en":'English'}   #Hausa {"ar":'Arabic'} {1:'English',2:"Hausa"}
+# qc_enumerator = "Kobo" #"Geopoll" or "Kobo"
+# qc_method = "CATI"
+# qc_step0_date = "04-08-2021"   ##NGA: "28-06-2021"  IRQ "01-07-2021"
+# qc_step1_username = "andrea.amparore"
 
 ####BGD
 table = r'C:\temp\BGD_R2_step0.csv' # IRQ_R5_step0.csv NGA_R1_step0.csv
@@ -57,6 +61,11 @@ qc_enumerator = "Geopoll" #"Geopoll" or "Kobo"
 qc_method = "CATI"
 qc_step0_date = "11-08-2021"   ##NGA: "28-06-2021"  IRQ "01-07-2021"
 qc_step1_username = "andrea.amparore"
+
+
+
+# END OF COUNTRY SPECIFIC INFO TO EDIT
+######################################
 
 
 startTime = datetime.now()
